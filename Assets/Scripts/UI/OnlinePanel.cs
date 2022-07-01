@@ -61,7 +61,14 @@ namespace Zomp.UI
 
         #endregion
 
-        
+        #region public methods
+        public void CreatePublicRoom()
+        {
+            GameLauncher.Instance.CreatePublicRoom();
+        }
+        #endregion
+
+
         #region pun callbacks
 
         public override void OnConnectedToMaster()
@@ -99,6 +106,18 @@ namespace Zomp.UI
 
             online = false;
             Debug.Log("Online panel OnDisconnected(), cause: " + cause);
+        }
+
+        public override void OnCreatedRoom()
+        {
+            base.OnCreatedRoom();
+
+        }
+
+        public override void OnCreateRoomFailed(short returnCode, string message)
+        {
+            base.OnCreateRoomFailed(returnCode, message);
+            
         }
         #endregion
     }

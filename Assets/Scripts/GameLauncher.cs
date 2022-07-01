@@ -17,6 +17,7 @@ namespace Zomp
         // Avoids the player to loop between leave and join room
         bool connecting = false;
         bool playNormalAndVRTogether = false;
+        int onlineMaxPlayers = 4;
         #endregion
 
         #region native methods
@@ -82,12 +83,47 @@ namespace Zomp
             PhotonNetwork.OfflineMode = true;
         }
 
+        /// <summary>
+        /// Quit the online mode disconnecting from photon
+        /// </summary>
         public void ExitOnlineMode()
         {
             Debug.Log("Leaving online mode...");
             connecting = false;
             PhotonNetwork.Disconnect();
         }
+
+        /// <summary>
+        /// Create a new room that every player can join
+        /// </summary>
+        public void CreatePublicRoom()
+        {
+            int maxPlayers = onlineMaxPlayers;
+
+
+            RoomOptions roomOptions = new RoomOptions() { MaxPlayers = (byte)maxPlayers };
+            
+            //roomOptions.CustomRoomPropertiesForLobby = new string[] { RoomCustomPropertyKey.PlayerCreator, RoomCustomPropertyKey.MapId };
+            roomOptions.IsVisible = true;
+            //roomOptions.CustomRoomProperties = new ExitGames.Client.Photon.Hashtable();
+            //roomOptions.CustomRoomProperties.Add(RoomCustomPropertyKey.MatchLength, (int)matchLength);
+            //roomOptions.CustomRoomProperties.Add(RoomCustomPropertyKey.PlayerCreator, (string)PhotonNetwork.NickName);
+            //roomOptions.CustomRoomProperties.Add(RoomCustomPropertyKey.MapId, (byte)mapId);
+
+            PhotonNetwork.CreateRoom(null, roomOptions);
+        }
+
+        public void CreatePrivateRoom()
+        {
+            int maxPlayers = onlineMaxPlayers;
+            RoomOptions roomOptions = new RoomOptions() { MaxPlayers = (byte)maxPlayers };
+            // Not visible on the lobby
+            roomOptions.IsVisible = false;
+
+            string roomName = "someName";
+            PhotonNetwork.CreateRoom(roomName, roomOptions);
+        }
+
         #endregion
 
         #region pun callbacks
@@ -127,6 +163,33 @@ namespace Zomp
             base.OnDisconnected(cause);
 
             Debug.Log("GameLauncher - OnDisconnected(), cause: " + cause);
+        }
+
+        public override void OnCreatedRoom()
+        {
+            base.OnCreatedRoom();
+
+            Debug.Log("GameLauncher OnCreatedRoom() succeeded, room: " + PhotonNetwork.CurrentRoom.Name);
+        }
+
+        public override void OnCreateRoomFailed(short returnCode, string message)
+        {
+            base.OnCreateRoomFailed(returnCode, message);
+
+            Debug.LogFormat("GameLauncher OnCreatedRoom() failed: ({0}) {1}", returnCode, message);
+        }
+
+        public override void OnLeftRoom()
+        {
+            base.OnLeftRoom();
+            Debug.Log("Local player left room");
+
+        }
+
+        public override void OnJoinedRoom()
+        {
+            base.OnJoinedRoom();
+            Debug.LogFormat("Local player joint room: {0}", PhotonNetwork.CurrentRoom);
         }
 
         #endregion
