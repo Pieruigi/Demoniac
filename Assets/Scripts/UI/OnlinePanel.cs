@@ -1,5 +1,6 @@
 using Photon.Pun;
 using Photon.Realtime;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -10,9 +11,15 @@ namespace Zomp.UI
     {
         #region private
         [SerializeField]
-        GameObject connectionPanel;
+        BusyPanel busyPanel;
 
-        bool online = false;
+        [SerializeField]
+        GameObject lobbyPanel;
+
+        [SerializeField]
+        GameObject mainPanel;
+
+        //DateTime lastJoinLobbyAttempt;
         #endregion
 
         #region native methods
@@ -30,7 +37,15 @@ namespace Zomp.UI
         // Update is called once per frame
         void Update()
         {
-
+            //if (!PhotonNetwork.InLobby)
+            //{
+            //    if ((DateTime.UtcNow - lastJoinLobbyAttempt).TotalSeconds > 1)
+            //    {
+            //        lastJoinLobbyAttempt = DateTime.UtcNow;
+            //        PhotonNetwork.JoinLobby();
+            //    }
+                    
+            //}
         }
 
         public override void OnEnable()
@@ -39,11 +54,8 @@ namespace Zomp.UI
 
             Debug.Log("Online panel enabled");
 
-            // Opening connection panel
-            connectionPanel.SetActive(true);
-
-            // Enter online mode
-            GameLauncher.Instance.EnterOnlineMode();
+            // Coming from the main panel
+            PhotonNetwork.JoinLobby();
         }
 
         public override void OnDisable()
@@ -52,11 +64,7 @@ namespace Zomp.UI
             
             Debug.Log("Online panel disabled");
                         
-            if (!online)
-                return;
-
-            online = false;
-            PhotonNetwork.Disconnect();
+           
         }
 
         #endregion
@@ -64,21 +72,34 @@ namespace Zomp.UI
         #region public methods
         public void CreatePublicRoom()
         {
+            // Create a public room
             GameLauncher.Instance.CreatePublicRoom();
+
+            // Show busy panel
+            busyPanel.Show("Creating room...");
+        }
+
+        public void DisconnectFromPhoton()
+        {
+            PhotonNetwork.Disconnect();
+
+            
         }
         #endregion
 
 
         #region pun callbacks
-
         public override void OnConnectedToMaster()
         {
             base.OnConnectedToMaster();
 
             Debug.Log("Online panel OnConnectedToMaster()");
 
-            
+            // Going back from the lobby panel
+            PhotonNetwork.JoinLobby();
         }
+
+
 
         public override void OnJoinedLobby()
         {
@@ -86,11 +107,7 @@ namespace Zomp.UI
 
             Debug.Log("Online panel joined to default lobby");
 
-            // Set online
-            online = true;
 
-            // Hide connection panel
-            connectionPanel.SetActive(false);
         }
 
         public override void OnLeftLobby()
@@ -100,24 +117,53 @@ namespace Zomp.UI
             Debug.Log("Online panel default lobby left");
         }
 
-        public override void OnDisconnected(DisconnectCause cause)
-        {
-            base.OnDisconnected(cause);
-
-            online = false;
-            Debug.Log("Online panel OnDisconnected(), cause: " + cause);
-        }
-
         public override void OnCreatedRoom()
         {
             base.OnCreatedRoom();
 
+            // Hide busy panel
+            busyPanel.Hide();
+
+            // Show lobby panel
+            lobbyPanel.SetActive(true);
+
+            // Hide this panel
+            gameObject.SetActive(false);
+            
         }
 
         public override void OnCreateRoomFailed(short returnCode, string message)
         {
             base.OnCreateRoomFailed(returnCode, message);
+
+            // Hide busy panel
+            busyPanel.Hide();
+        }
+
+        public override void OnLeftRoom()
+        {
+            base.OnLeftRoom();
+
+            // Rejoin the default lobby
             
+        }
+
+        public override void OnDisconnected(DisconnectCause cause)
+        {
+            base.OnDisconnected(cause);
+
+            // Hide busy panel
+            busyPanel.Hide();
+
+            if(cause != DisconnectCause.DisconnectByClientLogic)
+            {
+                // Show some error message here
+            }
+
+            // Connection problem 
+            // Reload the main panel
+            gameObject.SetActive(false);
+            mainPanel.SetActive(true);
         }
         #endregion
     }

@@ -129,19 +129,21 @@ namespace Zomp
         #region pun callbacks
         public override void OnConnectedToMaster()
         {
-            if (connecting)
-            {
-                // This callback gets called even when you leave a game ( moving from game server to 
-                // master server ); in that case we don't want to join some room again, so we check
-                // the connecting flag.
-                connecting = false;
-                Debug.LogFormat("PUN - Connected to MasterServer.");
-                // Joining or creating room
-                Debug.LogFormat("PUN - Joining default lobby...");
+            //if (connecting)
+            //{
+            //    // This callback gets called even when you leave a game ( moving from game server to 
+            //    // master server ); in that case we don't want to join some room again, so we check
+            //    // the connecting flag.
+            //    connecting = false;
+            //    Debug.LogFormat("PUN - Connected to MasterServer.");
+            //    // Joining or creating room
+            //    Debug.LogFormat("PUN - Joining default lobby...");
 
-                PhotonNetwork.JoinLobby();
-            }
+                
+            //}
+            Debug.LogFormat("PUN - Connected to MasterServer.");
 
+            //PhotonNetwork.JoinLobby();
         }
 
         public override void OnJoinedLobby()
